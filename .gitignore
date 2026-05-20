@@ -1,0 +1,5 @@
+.env
+*.bkp
+.DS_Store
+old/
+backup/

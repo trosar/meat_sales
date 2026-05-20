@@ -104,7 +104,7 @@ document.querySelectorAll('.ajax-form').forEach(form => {
         .then(cartCount => {
             // 2. Create the "Flying" element
             const flyer = document.createElement('div');
-            flyer.innerText = ' 🌸🌸🌸 '; // You can change this to any icon
+            flyer.innerText = ' Add to Cart '; // You can change this to any icon
             flyer.style.cssText = `
                 position: fixed;
                 z-index: 9999;

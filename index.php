@@ -18,21 +18,21 @@ $products = $pdo->query("SELECT * FROM {$tab_prefix}_products order by price des
 
 <!DOCTYPE html>
 <html>
-<?php $page_title = 'Plant Sales'; include 'header-html.php'; ?>
+<?php $page_title = 'Meat Sticks & Chocolate Fundraiser'; include 'header-html.php'; ?>
 
 <div class="main-container">
 
     <div class="fundraiser-info">
         <p>
-            We are selling plants to raise money to enable us to participate in adventures during the year, including summer camp.
+            We are selling Meat Sticks & Gourmet Chocolate <br/>to raise money to enable us to participate in adventures during the year, including summer camp.
             <br/>Thanks for your support!
             <br/>
-            <h4>Sponsor:
-                <a href="https://www.stadiumflowers.com/" target="_blank"><img class="sponsor-logo" src="media/Stadium_Flowers_Logo.png" alt="Stadium Flowers Logo"></a>
-            </h4>
 
         </p>
-        <h3>Orders are due by April 16 2026. Delivery will be made on May 1 2026.</h3>
+        <!-- <h4>Sponsor:
+            <a href="https://www.stadiumflowers.com/" target="_blank"><img class="sponsor-logo" src="media/Stadium_Flowers_Logo.png" alt="Stadium Flowers Logo"></a>
+        </h4> -->
+        <h3>Delivery will be made every weekend in June and July, 2026.</h3>
 
     </div>
 
@@ -75,11 +75,11 @@ if ($store_is_open) {
             </small>
         </div>    
 
-        <h3>Products are Sponsored By: 
+        <!-- <h3>Products are Sponsored By: 
             <a href="https://www.stadiumflowers.com/" target="_blank">
                 <img class="sponsor-logo" src="media/Stadium_Flowers_Logo.png" alt="Stadium Flowers Logo">
             </a>
-        </h3>
+        </h3> -->
     </div>
     <div id="credit-popup" class="credit-popup" style="display:none;">
         Built with ❤️ by Alan Rosario

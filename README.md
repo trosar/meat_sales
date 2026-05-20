@@ -1,3 +1,3 @@
-# flower-sales
+# Meat-and-Choclate-sales
 
-This is the codebase for the flower sales website.
+This is the codebase for the meat stick and chocolate sales website.

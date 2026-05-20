@@ -3,7 +3,7 @@
 // IMPORTANT: Set $page_title BEFORE including this file
 // Usage: < ?php $page_title = "Your Page Title"; include 'header-html.php'; ? >
 
-$page_title = $page_title ?? 'Plant Sales'; // Default title if not set
+$page_title = $page_title ?? 'Meat Sticks & Chocolate Fundraiser'; // Default title if not set
 ?>
 <head>
     <title>Scout Fundraiser</title>

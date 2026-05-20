@@ -31,7 +31,7 @@ $grand_total = 0;
 
 <!DOCTYPE html>
 <html>
-<?php $page_title = 'Plant Sales'; include 'header-html.php'; ?>
+<?php $page_title = 'Meat Sticks & Chocolate Fundraiser'; include 'header-html.php'; ?>
 
 <div class="main-container">    
     <h2 class="headings">Your Cart</h2>

@@ -119,8 +119,8 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
             <form method="POST">
                 <div class="form-group">
                     <select name="fundraiser" required>
-                        <option value="ps_2026" <?php echo ($tab_prefix === 'ps_2026') ? 'selected' : ''; ?>>Plant Sales 2026</option>
                         <option value="ms_2026" <?php echo ($tab_prefix === 'ms_2026') ? 'selected' : ''; ?>>Meat Sticks & Chocolate 2026</option>
+                        <option value="ps_2026" <?php echo ($tab_prefix === 'ps_2026') ? 'selected' : ''; ?>>Plant Sales 2026</option>
                     </select>
                 </div>
 

@@ -91,7 +91,7 @@ if ($store_is_prod) {
             <h3>Total Amount: $<?php echo number_format($grand_total, 2); ?></h3>
             <p>Payment Method Selected: <strong><?php echo htmlspecialchars($payment); ?></strong></p>
         <?php if ($payment === 'Venmo'): ?>
-            <p><a href="https://account.venmo.com/pay?amount=<?php echo rawurlencode($grand_total); ?>&note=Plant%20Sales%20<?php echo rawurlencode($scout_name); ?>&recipients=troop60" target="_blank">Click here</a> to pay now</p>
+            <p><a href="https://account.venmo.com/pay?amount=<?php echo rawurlencode($grand_total); ?>&note=Meatstick%20Chocolate%20Fundraiser%20<?php echo rawurlencode($scout_name); ?>&recipients=troop60" target="_blank">Click here</a> to pay now</p>
         <?php endif; ?>
             <p>Please follow the Troop's standard instructions for your payment.</p>
         </div>

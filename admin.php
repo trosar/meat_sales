@@ -30,7 +30,6 @@ if (isset($_POST['password'])) {
     
     if ($admin_password && $_POST['password'] === $admin_password) {
         $_SESSION['admin_logged_in'] = true;
-        $tab_prefix = $_POST['fundraiser'];
     } else {
         $error = "Incorrect password!";
     }
@@ -118,13 +117,6 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
             <?php if (isset($error)) echo "<p class='error-message'>$error</p>"; ?>
             <form method="POST">
                 <div class="form-group">
-                    <select name="fundraiser" required>
-                        <option value="ms_2026" <?php echo ($tab_prefix === 'ms_2026') ? 'selected' : ''; ?>>Meat Sticks & Chocolate 2026</option>
-                        <option value="ps_2026" <?php echo ($tab_prefix === 'ps_2026') ? 'selected' : ''; ?>>Plant Sales 2026</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <input type="password" name="password" placeholder="Enter Password" required><br>
                 </div>
                 <div class="btn-group">
@@ -142,19 +134,7 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 <?php $page_title = 'Order Management'; include 'header-html.php'; ?>
 
 <div class="main-container">
-    <div class="nav-bar">
-        <div>
-            <div>
-                <form method="POST">
-                    <button type="submit" name="download_orders_csv" class="btn btn-green">Download Order Info (CSV)</button>
-                    <button type="submit" name="download_products_csv" class="btn btn-orange">Download Product Orders (CSV)</button>
-                    <a href="reports.php" class="btn btn-purple">View Scout Reports</a>
-                    <a href="?logout=1" class="btn btn-logout">Logout</a>
-                </form>
-            </div>
-        </div>
-        
-    </div>
+    <?php include 'menu.php'; ?>
 
     <?php
     $orders = $pdo->query("SELECT * FROM {$tab_prefix}_orders where status != 'Cancelled'ORDER BY order_date DESC")->fetchAll();
@@ -223,6 +203,5 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
         </div>
     <?php endforeach; ?>
 </div>
-
 </body>
 </html>

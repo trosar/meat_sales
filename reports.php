@@ -52,17 +52,7 @@ $orderCount = $stats['order_count'] ?? 0;
 <html>
 <?php $page_title = 'Scout Sales Report'; include 'header-html.php'; ?>
     <div class="main-container">
-    <div class="nav-bar no-print">
-        <div>
-            <div>
-                <form method="POST">
-                    <button type="submit" name="download_scout_report_csv" class="btn btn-purple">Download Report (CSV)</button>
-                    <button type="button" onclick="downloadPrintableHTML()" class="btn btn-green">Download Report</button>                    
-                    <a href="admin.php" class="btn btn-back">Back to Admin</a>
-                </form>
-            </div>
-        </div>
-    </div>
+    <?php $nav_no_print = true; include 'menu.php'; ?>
 
     <div class="leaderboard-container no-print">
         <div class="leaderboard-card">
@@ -186,8 +176,8 @@ function downloadPrintableHTML() {
         })
         .join('');
 
-    // 2. Get the main content (the .container div)
-    const content = document.querySelector('.container').innerHTML;
+    // 2. Get the main content (the .main-container div)
+    const content = document.querySelector('.main-container').innerHTML;
 
     // 3. Construct a full HTML document string
     const htmlContent = `
@@ -203,7 +193,7 @@ function downloadPrintableHTML() {
             </style>
         </head>
         <body>
-            <div class="container">
+            <div class="main-container">
                 ${content}
             </div>
             <script>

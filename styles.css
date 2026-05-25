@@ -28,6 +28,7 @@ button, a {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 20px;
     border-bottom: 2px solid #eee;
 }
 
@@ -66,8 +67,8 @@ button, a {
 .btn-orange { background: #f57c00; }
 .btn-purple { background: #673ab7; }
 .btn-logout { background: #d32f2f;}
+.btn-edit { color: var(--primary-color); text-decoration: none; font-weight: bold; font-size: 0.8rem; margin-right: 10px; }
 .btn-remove { color: #d32f2f; text-decoration: none; font-weight: bold; font-size: 0.8rem; margin-left: 0px; }
-.qty-input { width: 20px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; }
 .total-row { font-size: 1.1rem; font-weight: bold; text-align: right; color: var(--primary-color); }
 table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
 th { text-align: left; background: #f2f2f2; padding: 12px; }
@@ -116,8 +117,50 @@ button[name="mark_unpaid"]:hover { background: #ffebee; }
 /* Form Styling */
 .form-group { margin-bottom: 15px; }
 label { display: block; font-weight: bold; margin-bottom: 5px; }
-input[type="text"], input[type="email"], input[type="password"], input[type="tel"], select { 
+
+/* Dropdown Menu Styles */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 260px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    margin-top: 5px;
+    border: 1px solid #eee;
+    overflow: hidden;
+}
+.dropdown-content a, .dropdown-item-btn {
+    color: #333; padding: 12px 16px; text-decoration: none; display: block; 
+    text-align: left; font-size: 0.95rem; border: none; background: none; width: 100%; cursor: pointer;
+    box-sizing: border-box;
+}
+.dropdown-content a:hover, .dropdown-item-btn:hover { background-color: #f5f5f5; }
+.dropdown-section { background: #f9f9f9; padding: 8px 16px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; color: #777; border-bottom: 1px solid #eee; }
+.dropdown-hr { border: 0; border-top: 1px solid #eee; margin: 0; }
+.show { display: block !important; }
+
+.success-message { 
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10001;
+    background: #e8f5e9; 
+    color: #2e7d32; 
+    padding: 15px 25px; 
+    border-radius: 8px; 
+    border-left: 5px solid #2e7d32; 
+    font-weight: bold; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"], input[type="date"], select { 
     width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; 
+}
+input[type="date"] { 
+    width: auto;
 }
 
 input[type="text"], 
@@ -125,6 +168,7 @@ input[type="password"],
 input[type="email"], 
 input[type="tel"], 
 input[type="number"], 
+input[type="date"],
 textarea, 
 select {
     font-size: 16px !important;
@@ -141,6 +185,7 @@ input[type=number] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+input.qty-input { width: 60px !important; padding: 5px; border: 1px solid #ccc; border-radius: 4px; display: inline-block; }
 .modal-overlay {
      position:fixed; z-index:10000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5);
 }

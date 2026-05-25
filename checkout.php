@@ -50,7 +50,6 @@ $grand_total = 0;
                 <select name="payment" required>
                     <option value="Venmo" <?php echo ($selectedPayment === 'Venmo') ? 'selected' : ''; ?>>Venmo</option>
                     <option value="Cash" <?php echo ($selectedPayment === 'Cash') ? 'selected' : ''; ?>>Cash</option>
-                    <option value="Check" <?php echo ($selectedPayment === 'Check') ? 'selected' : ''; ?>>Check</option>
                 </select>
             </div>
             <div class="form-group">

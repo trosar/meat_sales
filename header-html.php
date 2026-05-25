@@ -11,6 +11,15 @@ $page_title = $page_title ?? 'Meat Sticks & Chocolate Fundraiser'; // Default ti
     <link rel="stylesheet" href="styles.css?v=<?php echo $styles_version; ?>">
     <link rel="icon" type="image/x-icon" href="media/favicon.svg">
 </head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo $gtag_version; ?>"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', '<?php echo $gtag_version; ?>');
+</script>
 <body>
 <div class="header">
     <a href="https://www.troop60.co/"><img class="troop_logo" src="media/Troop_60_Logo.png" alt="Troop 60 Logo"></a>

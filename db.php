@@ -30,6 +30,7 @@ $db   = getenv('DB_NAME');
 $user = getenv('DB_USER');
 $pass = getenv('DB_PASS');
 $tab_prefix = getenv('DB_TAB_PREFIX');
+$gtag_version = getenv('GTAG_VERSION');
 $charset = 'utf8mb4';
 
 $store_is_prod = strtolower(getenv('STORE_IS_PROD') === 'true'); //If place order actually writes to DB or not

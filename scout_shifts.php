@@ -26,6 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['success_msg'] = "Record updated for " . $new_name;
     } elseif (isset($_POST['delete_shift'])) {
         $name = $_POST['scout_name'];
+
+        // Log the record before deletion
+        $fetchStmt = $pdo->prepare("SELECT * FROM {$tab_prefix}_scout_shifts WHERE scout_name = ?");
+        $fetchStmt->execute([$name]);
+        $record = $fetchStmt->fetch();
+        if ($record) {
+            $logStmt = $pdo->prepare("INSERT INTO {$tab_prefix}_delete_log (log_timestamp, page, log_message) VALUES (CURRENT_TIMESTAMP, 'scout_shifts.php', ?)");
+            $logStmt->execute([generateInsertSql("{$tab_prefix}_scout_shifts", $record, $pdo)]);
+        }
+
         $stmt = $pdo->prepare("DELETE FROM {$tab_prefix}_scout_shifts WHERE scout_name = ?");
         $stmt->execute([$name]);
         $_SESSION['success_msg'] = "Record deleted successfully.";

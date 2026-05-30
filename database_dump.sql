@@ -1,3 +1,9 @@
+CREATE TABLE delete_log (
+  log_timestamp timestamp NULL DEFAULT NULL,
+  page_name varchar(100) DEFAULT NULL,
+  log_message varchar(10000) DEFAULT NULL
+);
+
 CREATE TABLE scout_shifts (
   scout_name varchar(100) DEFAULT NULL,
   shifts int DEFAULT NULL

@@ -21,6 +21,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $_SESSION['success_msg'] = "Purchase record updated.";
     } elseif (isset($_POST['delete_purchase'])) {
+        // Log the record before deletion
+        $fetchStmt = $pdo->prepare("SELECT * FROM {$tab_prefix}_purchases WHERE purchase_date = ? AND purchaser_name = ? AND product_name = ? LIMIT 1");
+        $fetchStmt->execute([$_POST['purchase_date'], $_POST['purchaser_name'], $_POST['product_name']]);
+        $record = $fetchStmt->fetch();
+        if ($record) {
+            $logStmt = $pdo->prepare("INSERT INTO {$tab_prefix}_delete_log (log_timestamp, page, log_message) VALUES (CURRENT_TIMESTAMP, 'purchases.php', ?)");
+            $logStmt->execute([generateInsertSql("{$tab_prefix}_purchases", $record, $pdo)]);
+        }
+
         $stmt = $pdo->prepare("DELETE FROM {$tab_prefix}_purchases WHERE purchase_date = ? AND purchaser_name = ? AND product_name = ? LIMIT 1");
         $stmt->execute([$_POST['purchase_date'], $_POST['purchaser_name'], $_POST['product_name']]);
         $_SESSION['success_msg'] = "Purchase record deleted.";
@@ -107,6 +116,7 @@ $purchases = $pdo->query("SELECT * FROM {$tab_prefix}_purchases ORDER BY purchas
                         <th class="right-align">Qty</th>
                         <th class="right-align">Unit Cost</th>
                         <th class="right-align">Total Cost</th>
+                        <th class="right-align">Sale Price</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
@@ -121,6 +131,7 @@ $purchases = $pdo->query("SELECT * FROM {$tab_prefix}_purchases ORDER BY purchas
                             <td data-label="Total Cost" class="right-align" style="font-weight: bold;">
                                 $<?php echo number_format($row['qty_purchased'] * $row['unit_purchase_price'], 2); ?>
                             </td>
+                            <td data-label="Sale Price" class="right-align">$<?php echo number_format($row['unit_sale_price'], 2); ?></td>
                             <td data-label="Action" style="text-align: right; white-space: nowrap;">
                                 <button type="button" class="btn-edit" 
                                         style="border:none; background:none; cursor:pointer;"

@@ -19,6 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $_SESSION['success_msg'] = "Shift sale updated.";
     } elseif (isset($_POST['delete_sale'])) {
+        // Log the record before deletion
+        $fetchStmt = $pdo->prepare("SELECT * FROM {$tab_prefix}_shift_sales WHERE shift_date = ? AND shift_time = ? AND product_name = ? LIMIT 1");
+        $fetchStmt->execute([$_POST['shift_date'], $_POST['shift_time'], $_POST['product_name']]);
+        $record = $fetchStmt->fetch();
+        if ($record) {
+            $logStmt = $pdo->prepare("INSERT INTO {$tab_prefix}_delete_log (log_timestamp, page, log_message) VALUES (CURRENT_TIMESTAMP, 'shift_sales.php', ?)");
+            $logStmt->execute([generateInsertSql("{$tab_prefix}_shift_sales", $record, $pdo)]);
+        }
+
         $stmt = $pdo->prepare("DELETE FROM {$tab_prefix}_shift_sales WHERE shift_date = ? AND shift_time = ? AND product_name = ? LIMIT 1");
         $stmt->execute([$_POST['shift_date'], $_POST['shift_time'], $_POST['product_name']]);
         $_SESSION['success_msg'] = "Shift sale record deleted.";

@@ -73,4 +73,15 @@ function formatLocalDate($dateStr, $format = 'M j, Y g:i A') {
         return $dateStr; // Fallback to raw string if parsing fails
     }
 }
+
+/**
+ * Generates a MySQL INSERT statement for a given record.
+ */
+function generateInsertSql($tableName, $record, $pdo) {
+    $columns = implode(", ", array_keys($record));
+    $values = implode(", ", array_map(function($v) use ($pdo) {
+        return is_null($v) ? 'NULL' : $pdo->quote($v);
+    }, array_values($record)));
+    return "INSERT INTO $tableName ($columns) VALUES ($values);";
+}
 ?>

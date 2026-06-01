@@ -5,7 +5,7 @@ require_once 'db.php';
 if (isset($_POST['add_to_cart'])) {
     $p_id = $_POST['product_id'];
     $qty = (int)$_POST['quantity'];
-    if ($qty >= 1 && $qty <= 9) {
+    if ($qty >= 1 && $qty <= 99) {
         $_SESSION['cart'][$p_id] = ($_SESSION['cart'][$p_id] ?? 0) + $qty;
     }
     header("Location: index.php");
@@ -55,7 +55,7 @@ if ($store_is_open) {
             
             <form class="ajax-form">
                 <input type="hidden" name="product_id" value="<?php echo $p['id']; ?>">
-                <input type="number" name="quantity" value="1" min="1" max="9" class="qty-input">
+                <input type="number" name="quantity" value="1" min="1" max="99" class="qty-input">
                 <button type="submit" class="btn btn-primary">Add to Cart</button>
             </form>
         </div>

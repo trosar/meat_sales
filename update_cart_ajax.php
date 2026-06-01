@@ -11,7 +11,7 @@ if (isset($_POST['action'])) {
     // 1. Update the Session
     if ($_POST['action'] === 'update') {
         $qty = (int)$_POST['quantity'];
-        if ($qty >= 1 && $qty <= 9) {
+        if ($qty >= 1 && $qty <= 99) {
             $_SESSION['cart'][$id] = $qty;
         } else {
             unset($_SESSION['cart'][$id]);

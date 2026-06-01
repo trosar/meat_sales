@@ -17,7 +17,7 @@ if (isset($_GET['remove'])) {
 if (isset($_POST['update_qty'])) {
     $id = $_POST['product_id'];
     $new_qty = (int)$_POST['quantity'];
-    if ($new_qty >= 1 && $new_qty <= 9) {
+    if ($new_qty >= 1 && $new_qty <= 99) {
         $_SESSION['cart'][$id] = $new_qty;
     } elseif ($new_qty <= 0) {
         unset($_SESSION['cart'][$id]);
@@ -115,10 +115,10 @@ function updateCart(pId, qty, action) {
         action = 'remove';
     }
     
-    // If user typed something huge, cap it at 9 so it doesn't break PHP logic
-    if (qty > 9) {
-        qty = 9;
-        document.querySelector(`.ajax-qty[data-id="${pId}"]`).value = 9;
+    // If user typed something huge, cap it at 99 so it doesn't break PHP logic
+    if (qty > 99) {
+        qty = 99;
+        document.querySelector(`.ajax-qty[data-id="${pId}"]`).value = 99;
     }
 
     const formData = new FormData();

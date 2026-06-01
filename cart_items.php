@@ -29,7 +29,7 @@ $editable = $editable ?? false; // Default to false if not set
                         <div class="qty-controls">
                             <?php if ($editable): ?>
                                 <nobr>
-                                    <input type="number" value="<?php echo $qty; ?>" min="1" max="9" 
+                                    <input type="number" value="<?php echo $qty; ?>" min="1" max="99" 
                                         class="qty-input ajax-qty" data-id="<?php echo $id; ?>">
                                     <a href="#" class="btn-remove ajax-remove" data-id="<?php echo $id; ?>">❌</a>
                                 </nobr>

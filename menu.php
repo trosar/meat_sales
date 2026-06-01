@@ -1,12 +1,16 @@
 <?php
 $current_page = basename($_SERVER['PHP_SELF']);
 $nav_class = isset($nav_no_print) && $nav_no_print ? 'nav-bar no-print' : 'nav-bar';
+
+// Dynamically determine the store URL by removing the filename from the current path
+$store_url = str_replace($current_page, '', $_SERVER['PHP_SELF']);
 ?>
 <div class="<?php echo $nav_class; ?>">
     <div class="dropdown">
         <button type="button" class="btn btn-confirm" onclick="toggleMenu()"> Menu ▾</button>
         <div id="adminMenu" class="dropdown-content">
             <div class="dropdown-section">Management</div>
+            <a href="<?php echo $store_url; ?>" target="_blank">🛒 Visit Store Page</a>
             <a href="admin.php">📋 Order Management</a>
             <a href="purchases.php">📦 Manage Purchases</a>
             <a href="scout_shifts.php">👥 Manage Scout Shifts</a>

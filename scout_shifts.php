@@ -12,17 +12,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_shift'])) {
         $name = trim($_POST['scout_name']);
         $count = (int)$_POST['shifts'];
+        $comments = trim($_POST['comments'] ?? '');
         if (!empty($name)) {
-            $stmt = $pdo->prepare("INSERT INTO {$tab_prefix}_scout_shifts (scout_name, shifts) VALUES (?, ?)");
-            $stmt->execute([$name, $count]);
+            $stmt = $pdo->prepare("INSERT INTO {$tab_prefix}_scout_shifts (scout_name, shifts, comments) VALUES (?, ?, ?)");
+            $stmt->execute([$name, $count, $comments]);
             $_SESSION['success_msg'] = "Record added for " . $name;
         }
     } elseif (isset($_POST['update_shift'])) {
         $orig_name = $_POST['original_name'];
         $new_name = trim($_POST['scout_name']);
         $count = (int)$_POST['shifts'];
-        $stmt = $pdo->prepare("UPDATE {$tab_prefix}_scout_shifts SET scout_name = ?, shifts = ? WHERE scout_name = ? LIMIT 1");
-        $stmt->execute([$new_name, $count, $orig_name]);
+        $comments = trim($_POST['comments'] ?? '');
+        $stmt = $pdo->prepare("UPDATE {$tab_prefix}_scout_shifts SET scout_name = ?, shifts = ?, comments = ? WHERE scout_name = ? LIMIT 1");
+        $stmt->execute([$new_name, $count, $comments, $orig_name]);
         $_SESSION['success_msg'] = "Record updated for " . $new_name;
     } elseif (isset($_POST['delete_shift'])) {
         $name = $_POST['scout_name'];
@@ -73,6 +75,10 @@ $shifts = $pdo->query("SELECT * FROM {$tab_prefix}_scout_shifts ORDER BY scout_n
                 <label>Shifts Completed</label>
                 <input type="number" name="shifts" value="1" min="0" required>
             </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Comments</label>
+                <input type="text" name="comments" placeholder="Optional notes">
+            </div>
             <div style="grid-column: 1 / -1; text-align: right;">
                 <button type="button" id="cancel_btn" onclick="cancelEdit()" class="btn btn-back" style="display:none;">Cancel</button>
                 <button type="submit" id="submit_btn" name="add_shift" class="btn btn-confirm">Add Record</button>
@@ -88,6 +94,7 @@ $shifts = $pdo->query("SELECT * FROM {$tab_prefix}_scout_shifts ORDER BY scout_n
                     <tr>
                         <th>Scout Name</th>
                         <th style="width: 150px; text-align: center;">Shifts Completed</th>
+                        <th>Comments</th>
                         <th style="width: 200px; text-align: right;">Actions</th>
                     </tr>
                 </thead>
@@ -101,12 +108,14 @@ $shifts = $pdo->query("SELECT * FROM {$tab_prefix}_scout_shifts ORDER BY scout_n
                         <tr>
                             <td data-label="Scout Name"><?php echo htmlspecialchars($row['scout_name']); ?></td>
                             <td data-label="Shifts Completed" style="text-align: center;"><?php echo $row['shifts']; ?></td>
+                            <td data-label="Comments"><?php echo htmlspecialchars($row['comments'] ?? ''); ?></td>
                             <td data-label="Actions" style="text-align: right; white-space: nowrap;">
                                 <button type="button" class="btn-edit" 
                                         style="border:none; background:none; cursor:pointer;"
                                         onclick="editScout(this)"
                                         data-name="<?php echo htmlspecialchars($row['scout_name']); ?>"
-                                        data-shifts="<?php echo $row['shifts']; ?>">
+                                        data-shifts="<?php echo $row['shifts']; ?>"
+                                        data-comments="<?php echo htmlspecialchars($row['comments'] ?? ''); ?>">
                                     Edit
                                 </button>
 
@@ -151,6 +160,7 @@ $shifts = $pdo->query("SELECT * FROM {$tab_prefix}_scout_shifts ORDER BY scout_n
         const form = document.getElementById('edit_form');
         form.scout_name.value = data.name;
         form.shifts.value = data.shifts;
+        form.comments.value = data.comments;
         form.original_name.value = data.name;
 
         window.scrollTo({ top: 0, behavior: 'smooth' });

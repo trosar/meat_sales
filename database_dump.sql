@@ -6,7 +6,8 @@ CREATE TABLE delete_log (
 
 CREATE TABLE scout_shifts (
   scout_name varchar(100) DEFAULT NULL,
-  shifts int DEFAULT NULL
+  shifts int DEFAULT NULL,
+  comments varchar(1000) DEFAULT NULL
 );
 
 CREATE TABLE shift_sales (
@@ -18,7 +19,6 @@ CREATE TABLE shift_sales (
   total_donations decimal(10,2) DEFAULT NULL,
   comments varchar(255) DEFAULT NULL
 );
-
 
 CREATE TABLE purchases (
   purchase_date timestamp NULL DEFAULT NULL,

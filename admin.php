@@ -99,6 +99,84 @@ if (isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true
         header("Location: admin.php");
         exit;
     }    
+
+    // Handle "Partial Payment" (Split Order)
+    if (isset($_POST['partial_pay'])) {
+        $orderId = $_POST['order_id'];
+        $paidQtys = $_POST['paid_qtys'] ?? [];
+
+        if (!empty($paidQtys) && array_sum($paidQtys) >= 0) {
+            try {
+                $pdo->beginTransaction();
+
+                $stmt = $pdo->prepare("SELECT * FROM {$tab_prefix}_orders WHERE id = ?");
+                $stmt->execute([$orderId]);
+                $origOrder = $stmt->fetch();
+
+                $stmt = $pdo->prepare("SELECT * FROM {$tab_prefix}_order_items WHERE order_id = ?");
+                $stmt->execute([$orderId]);
+                $allOrderItems = $stmt->fetchAll();
+
+                $needsSplit = false;
+                foreach ($allOrderItems as $item) {
+                    $pQty = (int)($paidQtys[$item['id']] ?? 0);
+                    if ($pQty < (int)$item['quantity']) {
+                        $needsSplit = true;
+                        break;
+                    }
+                }
+
+                if ($needsSplit) {
+                    $sqlNew = "INSERT INTO {$tab_prefix}_orders (customer_name, address, email, scout_name, payment_mode, total_amount, comments, status) 
+                               VALUES (?, ?, ?, ?, ?, 0, ?, 'Pending')";
+                    $stmtNew = $pdo->prepare($sqlNew);
+                    $stmtNew->execute([
+                        $origOrder['customer_name'], $origOrder['address'], $origOrder['email'], 
+                        $origOrder['scout_name'], $origOrder['payment_mode'], 
+                        "Split from Order #$orderId. " . $origOrder['comments']
+                    ]);
+                    $newOrderId = $pdo->lastInsertId();
+
+                    foreach ($allOrderItems as $item) {
+                        $itemId = $item['id'];
+                        $pQty = (int)($paidQtys[$itemId] ?? 0);
+                        $origQty = (int)$item['quantity'];
+
+                        if ($pQty <= 0) {
+                            $pdo->prepare("UPDATE {$tab_prefix}_order_items SET order_id = ? WHERE id = ?")
+                                ->execute([$newOrderId, $itemId]);
+                        } elseif ($pQty < $origQty) {
+                            $uQty = $origQty - $pQty;
+                            $unitPrice = $item['subtotal'] / $origQty;
+                            
+                            $pdo->prepare("UPDATE {$tab_prefix}_order_items SET quantity = ?, subtotal = ? WHERE id = ?")
+                                ->execute([$pQty, $pQty * $unitPrice, $itemId]);
+                            
+                            $pdo->prepare("INSERT INTO {$tab_prefix}_order_items (order_id, product_name, quantity, subtotal) VALUES (?, ?, ?, ?)")
+                                ->execute([$newOrderId, $item['product_name'], $uQty, $uQty * $unitPrice]);
+                        }
+                    }
+
+                    $pdo->prepare("UPDATE {$tab_prefix}_orders SET status = 'Paid' WHERE id = ?")
+                        ->execute([$orderId]);
+
+                    $stmtTotal = $pdo->prepare("UPDATE {$tab_prefix}_orders SET total_amount = (SELECT COALESCE(SUM(subtotal),0) FROM {$tab_prefix}_order_items WHERE order_id = ?) WHERE id = ?");
+                    $stmtTotal->execute([$orderId, $orderId]);
+                    $stmtTotal->execute([$newOrderId, $newOrderId]);
+                } else {
+                    // If all items selected, just mark the whole order as paid
+                    $pdo->prepare("UPDATE {$tab_prefix}_orders SET status = 'Paid' WHERE id = ?")->execute([$orderId]);
+                }
+
+                $pdo->commit();
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                $error = "Failed to split order: " . $e->getMessage();
+            }
+        }
+        header("Location: admin.php");
+        exit;
+    }
 }
 
 // 6. Show Login Page if not logged in
@@ -139,6 +217,8 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     <?php
     $orders = $pdo->query("SELECT * FROM {$tab_prefix}_orders where status != 'Cancelled'ORDER BY order_date DESC")->fetchAll();
     foreach ($orders as $order): ?>
+        <form method="POST">
+        <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
         <div class="order-card">
             <div class="order-header">
                 <div>
@@ -152,16 +232,22 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
                 <div>
                     <?php if ($order['status'] === 'Paid'): ?>
                         <span class="status-badge status-paid">✅ PAID (<?php echo $order['payment_mode']; ?>)</span>
-                        <form method="POST" class="paid-unpaid">
-                            <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
+                        <div class="paid-unpaid no-print">
                             <button type="submit" name="mark_unpaid" class="mark-unpaid">Mark Unpaid</button>
-                        </form>
+                        </div>
                     <?php else: ?>
                         <span class="status-badge status-pending">⏳ PENDING (<?php echo $order['payment_mode']; ?>)</span>
-                        <form method="POST" class="paid-unpaid">
-                            <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>">
-                            <button type="submit" name="mark_paid" class="mark-paid">Mark Paid</button>
-                        </form>
+                        <div class="paid-unpaid no-print">
+                            <button type="submit" name="mark_paid" class="mark-paid" style="margin-right:5px;">Mark Paid</button>
+                            <?php 
+                                // Only show Partial Pay if there's more than one line item OR a single item with quantity > 1
+                                $checkStmt = $pdo->prepare("SELECT COUNT(*) as item_count, SUM(quantity) as total_qty FROM {$tab_prefix}_order_items WHERE order_id = ?");
+                                $checkStmt->execute([$order['id']]);
+                                $orderStats = $checkStmt->fetch();
+                                if ($orderStats['item_count'] > 1 || ($orderStats['total_qty'] ?? 0) > 1): ?>
+                                <button type="submit" name="partial_pay" class="btn-partial" onclick="return togglePartialPay(this)">Partial Pay</button>
+                            <?php endif; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>
@@ -178,8 +264,11 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
             <table class="item-table">
                 <thead>
                     <tr>
-                        <th>Item Description</th>
-                        <th class="right-align">Qty</th>
+                        <th>Item Name</th>
+                        <th class="right-align">Qty Purchased</th>
+                        <?php if ($order['status'] !== 'Paid'): ?>
+                            <th class="no-print partial-only right-align" style="width: 100px;">Qty Paid For</th>
+                        <?php endif; ?>
                         <th class="right-align">Subtotal</th>
                     </tr>
                 </thead>
@@ -191,6 +280,11 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
                         <tr>
                             <td><?php echo htmlspecialchars($item['product_name']); ?></td>
                             <td class="right-align"><?php echo $item['quantity']; ?></td>
+                            <?php if ($order['status'] !== 'Paid'): ?>
+                                <td class="no-print partial-only right-align">
+                                    <input type="number" name="paid_qtys[<?php echo $item['id']; ?>]" value="<?php echo $item['quantity']; ?>" min="0" max="<?php echo $item['quantity']; ?>" class="qty-input" style="width: 50px !important;">
+                                </td>
+                            <?php endif; ?>
                             <td class="right-align">$<?php echo number_format($item['subtotal'], 2); ?></td>
                         </tr>
                     <?php endwhile; ?>
@@ -201,7 +295,21 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
                 Total: $<?php echo number_format($order['total_amount'], 2); ?>
             </div>
         </div>
+        </form>
     <?php endforeach; ?>
 </div>
+
+<script>
+function togglePartialPay(btn) {
+    const card = btn.closest('.order-card');
+    if (!card.classList.contains('is-partial')) {
+        card.classList.add('is-partial');
+        btn.textContent = 'Update Payments';
+
+        return false; // Prevent form submission on first click
+    }
+    return true; // Allow submission on subsequent clicks
+}
+</script>
 </body>
 </html>

@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
-$sales = $pdo->query("SELECT * FROM {$tab_prefix}_shift_sales ORDER BY shift_date DESC, shift_time ASC")->fetchAll();
+$sales = $pdo->query("SELECT * FROM {$tab_prefix}_shift_sales ORDER BY shift_date ASC, shift_time ASC")->fetchAll();
 $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_sale_price FROM {$tab_prefix}_purchases GROUP BY product_name ORDER BY product_name ASC")->fetchAll();
 ?>
 
@@ -45,15 +45,15 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
 <?php $page_title = 'Manage Shift Sales'; include 'header-html.php'; ?>
 
 <div class="main-container">
-    <?php include 'menu.php'; ?>
+    <?php $nav_no_print = true; include 'menu.php'; ?>
 
     <?php if (isset($_SESSION['success_msg'])): ?>
-        <div class="success-message">
+        <div class="success-message no-print">
             ✅ <?php echo htmlspecialchars($_SESSION['success_msg']); unset($_SESSION['success_msg']); ?>
         </div>
     <?php endif; ?>
 
-    <div class="order-card">
+    <div class="order-card no-print">
         <h2 class="headings" id="form_title">Record New Shift Sale</h2>
         <form id="edit_form" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
             <input type="hidden" name="orig_shift_date">
@@ -131,11 +131,59 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($sales as $row): ?>
-                        <tr>
+                    <?php 
+                    $lastDate = null;
+                    $lastTime = null;
+                    $subQty = 0;
+                    $subSales = 0;
+                    $subDonations = 0;
+                    $count = count($sales);
+
+                    foreach ($sales as $index => $row): 
+                        $isNewDate = ($row['shift_date'] !== $lastDate);
+                        $isNewTimeSlot = ($row['shift_time'] !== $lastTime);
+
+                        // If new slot/date (and not first row), print subtotal for the previous group
+                        if ($index > 0 && ($isNewDate || $isNewTimeSlot)):
+                    ?>
+                        <tr class="subtotal-row">
+                            <td data-label="Summary" colspan="2" style="text-align: right;">Time Slot Subtotal:</td>
+                            <td data-label="Subtotal Qty" class="right-align"><?php echo $subQty; ?></td>
+                            <td data-label="Subtotal Sales" class="right-align">$<?php echo number_format($subSales, 2); ?></td>
+                            <td data-label="Subtotal Donations" class="right-align">$<?php echo number_format($subDonations, 2); ?></td>
+                            <td data-label="Total Earned" class="right-align" style="color: var(--primary-color);">
+                                $<?php echo number_format($subSales + $subDonations, 2); ?>
+                            </td>
+                        </tr>
+                    <?php 
+                            $subQty = 0; $subSales = 0; $subDonations = 0;
+                        endif;
+
+                        if ($isNewDate):
+                            $lastDate = $row['shift_date'];
+                            $lastTime = $row['shift_time'];
+                    ?>
+                        <tr class="date-divider">
+                            <td colspan="6">
+                                📅 <?php echo date('l, F j, Y', strtotime($row['shift_date'])); ?>
+                            </td>
+                        </tr>
+                    <?php 
+                        elseif ($isNewTimeSlot):
+                            $lastTime = $row['shift_time'];
+                        endif; 
+
+                        // Accumulate for subtotals
+                        $subQty += $row['qty_sold'];
+                        $subSales += $row['total_sales'];
+                        $subDonations += $row['total_donations'];
+
+                        // Only show time-divider if it's a new slot within the same day
+                        $rowClass = ($isNewTimeSlot && !$isNewDate) ? 'class="time-divider"' : '';
+                    ?>
+                        <tr <?php echo $rowClass; ?>>
                             <td data-label="Date/Time">
-                                <strong><?php echo date('M j', strtotime($row['shift_date'])); ?></strong><br>
-                                <small class="text-muted"><?php echo htmlspecialchars($row['shift_time']); ?></small>
+                                <strong><?php echo htmlspecialchars($row['shift_time']); ?></strong>
                             </td>
                             <td data-label="Product"><?php echo htmlspecialchars($row['product_name']); ?></td>
                             <td data-label="Qty" class="right-align"><?php echo $row['qty_sold']; ?></td>
@@ -163,7 +211,22 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                                 </form>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
+                    <?php 
+                        // End of loop: print the final group subtotal
+                        if ($index === $count - 1):
+                    ?>
+                        <tr class="subtotal-row">
+                            <td data-label="Summary" colspan="2" style="text-align: right;">Time Slot Subtotal:</td>
+                            <td data-label="Subtotal Qty" class="right-align"><?php echo $subQty; ?></td>
+                            <td data-label="Subtotal Sales" class="right-align">$<?php echo number_format($subSales, 2); ?></td>
+                            <td data-label="Subtotal Donations" class="right-align">$<?php echo number_format($subDonations, 2); ?></td>
+                            <td data-label="Total Earned" class="right-align" style="color: var(--primary-color);">
+                                $<?php echo number_format($subSales + $subDonations, 2); ?>
+                            </td>
+                        </tr>
+                    <?php
+                        endif;
+                    endforeach; ?>
                 </tbody>
             </table>
         </div>

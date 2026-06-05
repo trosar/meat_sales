@@ -34,7 +34,7 @@ $store_url = str_replace($current_page, '', $_SERVER['PHP_SELF']);
                     <button type="submit" name="download_scout_report_csv" class="dropdown-item-btn">📥 Download Report (CSV)</button>
                     <button type="button" onclick="downloadPrintableHTML()" class="dropdown-item-btn">📄 Download Printable (HTML)</button>
                 </form>
-            <?php elseif (in_array($current_page, ['shift_report.php', 'individual_sales_report.php', 'inventory_report.php'])): ?>
+            <?php elseif (in_array($current_page, ['shift_report.php', 'individual_sales_report.php', 'inventory_report.php', 'scout_shifts.php', 'shift_sales.php', 'purchases.php'])): ?>
                 <div class="dropdown-section">Exports</div>
                 <button type="button" onclick="window.print()" class="dropdown-item-btn">🖨️ Print Report</button>
             <?php endif; ?>

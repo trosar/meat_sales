@@ -54,15 +54,15 @@ $shifts = $pdo->query("SELECT * FROM {$tab_prefix}_scout_shifts ORDER BY scout_n
 <?php $page_title = 'Manage Scout Shifts'; include 'header-html.php'; ?>
 
 <div class="main-container">
-    <?php include 'menu.php'; ?>
+    <?php $nav_no_print = true; include 'menu.php'; ?>
 
     <?php if (isset($_SESSION['success_msg'])): ?>
-        <div class="success-message">
+        <div class="success-message no-print">
             ✅ <?php echo htmlspecialchars($_SESSION['success_msg']); unset($_SESSION['success_msg']); ?>
         </div>
     <?php endif; ?>
 
-    <div class="order-card">
+    <div class="order-card no-print">
         <h2 class="headings" id="form_title">Add New Scout Shift Record</h2>
         <form id="edit_form" method="POST" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
             <input type="hidden" name="original_name">

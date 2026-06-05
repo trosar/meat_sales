@@ -12,7 +12,8 @@ $sql = "SELECT
             p.product_name,
             p.total_purchased,
             COALESCE(ss.shift_sold, 0) as shift_sold,
-            COALESCE(indiv.indiv_sold, 0) as indiv_sold
+            COALESCE(indiv.indiv_paid, 0) as indiv_paid,
+            COALESCE(indiv.indiv_unpaid, 0) as indiv_unpaid
         FROM (
             SELECT product_name, SUM(qty_purchased) as total_purchased
             FROM {$tab_prefix}_purchases
@@ -24,7 +25,9 @@ $sql = "SELECT
             GROUP BY product_name
         ) ss ON p.product_name = ss.product_name
         LEFT JOIN (
-            SELECT pr.internal_name, SUM(oi.quantity) as indiv_sold
+            SELECT pr.internal_name, 
+                SUM(CASE WHEN o.status = 'Paid' THEN oi.quantity ELSE 0 END) as indiv_paid,
+                SUM(CASE WHEN o.status != 'Paid' THEN oi.quantity ELSE 0 END) as indiv_unpaid
             FROM {$tab_prefix}_order_items oi
             JOIN {$tab_prefix}_orders o ON oi.order_id = o.id
             JOIN {$tab_prefix}_products pr ON oi.product_name = pr.name
@@ -55,23 +58,25 @@ $inventory = $pdo->query($sql)->fetchAll();
                         <th>Product Name</th>
                         <th class="right-align">Purchased</th>
                         <th class="right-align">Shift Sales</th>
-                        <th class="right-align">Indiv. Sales</th>
+                        <th class="right-align">Indiv. (Paid)</th>
+                        <th class="right-align">Indiv. (Unpaid)</th>
                         <th class="right-align">Remaining</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($inventory)): ?>
-                        <tr><td colspan="5" style="text-align:center; padding: 20px;">No inventory data available.</td></tr>
+                        <tr><td colspan="6" style="text-align:center; padding: 20px;">No inventory data available.</td></tr>
                     <?php endif; ?>
                     <?php foreach ($inventory as $row): 
-                        $remaining = $row['total_purchased'] - $row['shift_sold'] - $row['indiv_sold'];
+                        $remaining = $row['total_purchased'] - $row['shift_sold'] - $row['indiv_paid'] - $row['indiv_unpaid'];
                         $status_color = ($remaining <= 0) ? '#d32f2f' : (($remaining < 10) ? '#f57c00' : 'inherit');
                     ?>
                         <tr>
                             <td data-label="Product"><strong><?php echo htmlspecialchars($row['product_name']); ?></strong></td>
                             <td data-label="Purchased" class="right-align"><?php echo number_format($row['total_purchased']); ?></td>
                             <td data-label="Shift Sales" class="right-align"><?php echo number_format($row['shift_sold']); ?></td>
-                            <td data-label="Indiv. Sales" class="right-align"><?php echo number_format($row['indiv_sold']); ?></td>
+                            <td data-label="Indiv. (Paid)" class="right-align"><?php echo number_format($row['indiv_paid']); ?></td>
+                            <td data-label="Indiv. (Unpaid)" class="right-align"><?php echo number_format($row['indiv_unpaid']); ?></td>
                             <td data-label="Remaining" class="right-align" style="font-weight:bold; color: <?php echo $status_color; ?>;">
                                 <?php echo number_format($remaining); ?>
                             </td>

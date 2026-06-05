@@ -35,7 +35,7 @@ $charset = 'utf8mb4';
 
 $store_is_prod = strtolower(getenv('STORE_IS_PROD') === 'true'); //If place order actually writes to DB or not
 $store_is_open = strtolower(getenv('STORE_IS_OPEN') === 'true'); //Homepage shows items or not
-$styles_version = "130"; // Increment this to force browsers to reload CSS when needed
+$styles_version = "138"; // Increment this to force browsers to reload CSS when needed
 
 // Basic validation: stop if variables are missing
 if (!$host || !$user || !$pass) {

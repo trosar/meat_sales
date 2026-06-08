@@ -280,7 +280,7 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                             <td data-label="Subtotal Venmo" class="right-align">$<?php echo number_format($vTotal, 2); ?></td>
                             <td data-label="Subtotal Cash" class="right-align">$<?php echo number_format($cTotal, 2); ?></td>
                             <td data-label="Subtotal Total" class="right-align" style="color: var(--primary-color); font-weight: bold;">$<?php echo number_format($grandSub, 2); ?></td>
-                            <td data-label="Action" style="text-align: right;">
+                            <td data-label="Action">
                                 <button type="button" class="btn-edit" 
                                         style="font-size: 0.75rem; border:none; background:none; cursor:pointer;"
                                         onclick="openVenmoModal('<?php echo $lastDate; ?>', '<?php echo htmlspecialchars($lastTime); ?>', '<?php echo $vTotal; ?>', '<?php echo htmlspecialchars($vRec['comments'] ?? ''); ?>', '<?php echo date('l, F j, Y', strtotime($lastDate)); ?>')">

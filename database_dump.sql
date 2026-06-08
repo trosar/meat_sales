@@ -20,6 +20,13 @@ CREATE TABLE shift_sales (
   comments varchar(255) DEFAULT NULL
 );
 
+CREATE TABLE shift_venmo_only (
+  shift_date timestamp NULL DEFAULT NULL,
+  shift_time varchar(20) DEFAULT NULL,
+  venmo_total decimal(10,2) DEFAULT NULL,
+  comments varchar(255) DEFAULT NULL
+);
+
 CREATE TABLE purchases (
   purchase_date timestamp NULL DEFAULT NULL,
   purchaser_name varchar(100) DEFAULT NULL,

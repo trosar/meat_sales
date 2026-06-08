@@ -32,11 +32,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$_POST['shift_date'], $_POST['shift_time'], $_POST['product_name']]);
         $_SESSION['success_msg'] = "Shift sale record deleted.";
     }
+
+    if (isset($_POST['save_venmo'])) {
+        $stmt = $pdo->prepare("DELETE FROM {$tab_prefix}_shift_venmo_only WHERE shift_date = ? AND shift_time = ?");
+        $stmt->execute([$_POST['shift_date'], $_POST['shift_time']]);
+
+        $stmt = $pdo->prepare("INSERT INTO {$tab_prefix}_shift_venmo_only (shift_date, shift_time, venmo_total, comments) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$_POST['shift_date'], $_POST['shift_time'], $_POST['venmo_total'], $_POST['comments']]);
+        $_SESSION['success_msg'] = "Venmo amount saved for " . $_POST['shift_time'];
+    }
+
     header("Location: shift_sales.php");
     exit;
 }
 
-$sales = $pdo->query("SELECT * FROM {$tab_prefix}_shift_sales ORDER BY shift_date ASC, shift_time ASC")->fetchAll();
+$sales = $pdo->query("SELECT * FROM {$tab_prefix}_shift_sales ORDER BY shift_date ASC, shift_time ASC, product_name DESC")->fetchAll();
+
+$finalGrandVenmo = 0;
+$finalGrandCash = 0;
+$finalGrandTotal = 0;
+
+$venmo_raw = $pdo->query("SELECT * FROM {$tab_prefix}_shift_venmo_only")->fetchAll();
+$venmo_map = [];
+foreach ($venmo_raw as $v) {
+    $d = date('Y-m-d', strtotime($v['shift_date']));
+    $venmo_map[$d . '|' . $v['shift_time']] = $v;
+}
+
 $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_sale_price FROM {$tab_prefix}_purchases GROUP BY product_name ORDER BY product_name ASC")->fetchAll();
 ?>
 
@@ -127,6 +149,9 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                         <th class="right-align">Qty</th>
                         <th class="right-align">Sales</th>
                         <th class="right-align">Donations</th>
+                        <th class="right-align">Venmo</th>
+                        <th class="right-align">Cash</th>
+                        <th class="right-align">Total</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
@@ -145,14 +170,30 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
 
                         // If new slot/date (and not first row), print subtotal for the previous group
                         if ($index > 0 && ($isNewDate || $isNewTimeSlot)):
+                            $vKey = date('Y-m-d', strtotime($lastDate)) . '|' . $lastTime;
+                            $vRec = $venmo_map[$vKey] ?? null;
+                            $vTotal = $vRec['venmo_total'] ?? 0;
+                            $grandSub = $subSales + $subDonations;
+                            $cTotal = $grandSub - $vTotal;
+
+                            $finalGrandVenmo += $vTotal;
+                            $finalGrandCash += $cTotal;
+                            $finalGrandTotal += $grandSub;
                     ?>
                         <tr class="subtotal-row">
                             <td data-label="Summary" colspan="2" style="text-align: right;">Time Slot Subtotal:</td>
                             <td data-label="Subtotal Qty" class="right-align"><?php echo $subQty; ?></td>
                             <td data-label="Subtotal Sales" class="right-align">$<?php echo number_format($subSales, 2); ?></td>
                             <td data-label="Subtotal Donations" class="right-align">$<?php echo number_format($subDonations, 2); ?></td>
-                            <td data-label="Total Earned" class="right-align" style="color: var(--primary-color);">
-                                $<?php echo number_format($subSales + $subDonations, 2); ?>
+                            <td data-label="Subtotal Venmo" class="right-align">$<?php echo number_format($vTotal, 2); ?></td>
+                            <td data-label="Subtotal Cash" class="right-align">$<?php echo number_format($cTotal, 2); ?></td>
+                            <td data-label="Subtotal Total" class="right-align" style="color: var(--primary-color); font-weight: bold;">$<?php echo number_format($grandSub, 2); ?></td>
+                            <td data-label="Action" style="text-align: right;">
+                                <button type="button" class="btn-edit" 
+                                        style="font-size: 0.75rem; border:none; background:none; cursor:pointer;"
+                                        onclick="openVenmoModal('<?php echo $lastDate; ?>', '<?php echo htmlspecialchars($lastTime); ?>', '<?php echo $vTotal; ?>', '<?php echo htmlspecialchars($vRec['comments'] ?? ''); ?>', '<?php echo date('l, F j, Y', strtotime($lastDate)); ?>')">
+                                    Breakdown
+                                </button>
                             </td>
                         </tr>
                     <?php 
@@ -164,7 +205,7 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                             $lastTime = $row['shift_time'];
                     ?>
                         <tr class="date-divider">
-                            <td colspan="6">
+                            <td colspan="9">
                                 📅 <?php echo date('l, F j, Y', strtotime($row['shift_date'])); ?>
                             </td>
                         </tr>
@@ -189,6 +230,9 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                             <td data-label="Qty" class="right-align"><?php echo $row['qty_sold']; ?></td>
                             <td data-label="Sales" class="right-align">$<?php echo number_format($row['total_sales'], 2); ?></td>
                             <td data-label="Donations" class="right-align">$<?php echo number_format($row['total_donations'], 2); ?></td>
+                            <td class="right-align text-muted">—</td>
+                            <td class="right-align text-muted">—</td>
+                            <td data-label="Total" class="right-align">$<?php echo number_format($row['total_sales'] + $row['total_donations'], 2); ?></td>
                             <td data-label="Action" style="text-align: right; white-space: nowrap;">
                                 <button type="button" class="btn-edit" 
                                         style="border:none; background:none; cursor:pointer;"
@@ -203,7 +247,7 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                                     Edit
                                 </button>
 
-                                <form method="POST" onsubmit="return confirm('Delete this record?');">
+                                <form method="POST" onsubmit="return confirm('Delete this record?');" style="display: inline;">
                                     <input type="hidden" name="shift_date" value="<?php echo $row['shift_date']; ?>">
                                     <input type="hidden" name="shift_time" value="<?php echo htmlspecialchars($row['shift_time']); ?>">
                                     <input type="hidden" name="product_name" value="<?php echo htmlspecialchars($row['product_name']); ?>">
@@ -214,22 +258,73 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                     <?php 
                         // End of loop: print the final group subtotal
                         if ($index === $count - 1):
+                            $vKey = date('Y-m-d', strtotime($lastDate)) . '|' . $lastTime;
+                            $vRec = $venmo_map[$vKey] ?? null;
+                            $vTotal = $vRec['venmo_total'] ?? 0;
+                            $grandSub = $subSales + $subDonations;
+                            $cTotal = $grandSub - $vTotal;
+
+                            $finalGrandVenmo += $vTotal;
+                            $finalGrandCash += $cTotal;
+                            $finalGrandTotal += $grandSub;
                     ?>
                         <tr class="subtotal-row">
                             <td data-label="Summary" colspan="2" style="text-align: right;">Time Slot Subtotal:</td>
                             <td data-label="Subtotal Qty" class="right-align"><?php echo $subQty; ?></td>
                             <td data-label="Subtotal Sales" class="right-align">$<?php echo number_format($subSales, 2); ?></td>
                             <td data-label="Subtotal Donations" class="right-align">$<?php echo number_format($subDonations, 2); ?></td>
-                            <td data-label="Total Earned" class="right-align" style="color: var(--primary-color);">
-                                $<?php echo number_format($subSales + $subDonations, 2); ?>
+                            <td data-label="Subtotal Venmo" class="right-align">$<?php echo number_format($vTotal, 2); ?></td>
+                            <td data-label="Subtotal Cash" class="right-align">$<?php echo number_format($cTotal, 2); ?></td>
+                            <td data-label="Subtotal Total" class="right-align" style="color: var(--primary-color); font-weight: bold;">$<?php echo number_format($grandSub, 2); ?></td>
+                            <td data-label="Action" style="text-align: right;">
+                                <button type="button" class="btn-edit" 
+                                        style="font-size: 0.75rem; border:none; background:none; cursor:pointer;"
+                                        onclick="openVenmoModal('<?php echo $lastDate; ?>', '<?php echo htmlspecialchars($lastTime); ?>', '<?php echo $vTotal; ?>', '<?php echo htmlspecialchars($vRec['comments'] ?? ''); ?>', '<?php echo date('l, F j, Y', strtotime($lastDate)); ?>')">
+                                    Breakdown
+                                </button>
                             </td>
                         </tr>
                     <?php
                         endif;
-                    endforeach; ?>
+                    endforeach; 
+                    ?>
+                    <tr style="background: #eee; font-weight: bold; border-top: 2px solid #333;">
+                        <td colspan="5" style="text-align: right; padding: 15px;">GRAND TOTALS:</td>
+                        <td class="right-align">$<?php echo number_format($finalGrandVenmo, 2); ?></td>
+                        <td class="right-align">$<?php echo number_format($finalGrandCash, 2); ?></td>
+                        <td class="right-align" style="color: var(--primary-color);">$<?php echo number_format($finalGrandTotal, 2); ?></td>
+                        <td></td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+
+<!-- Venmo Breakdown Modal -->
+<div id="venmo_modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content" style="width: 320px;">
+        <h3 id="venmo_modal_title">Venmo Amount</h3>
+        <form method="POST">
+            <input type="hidden" name="shift_date" id="venmo_date">
+            <input type="hidden" name="shift_time" id="venmo_time">
+            <div class="form-group" style="text-align: left;">
+                <label>Date & Time Slot</label>
+                <div id="venmo_display_label" style="font-size: 0.9rem; margin-bottom: 10px; color: #666;"></div>
+            </div>
+            <div class="form-group" style="text-align: left;">
+                <label>Venmo Total ($)</label>
+                <input type="number" step="0.01" name="venmo_total" id="venmo_total_input" required>
+            </div>
+            <div class="form-group" style="text-align: left;">
+                <label>Comments</label>
+                <input type="text" name="comments" id="venmo_comments_input">
+            </div>
+            <div style="margin-top: 20px;">
+                <button type="submit" name="save_venmo" class="btn btn-confirm">Save</button>
+                <button type="button" onclick="document.getElementById('venmo_modal').style.display='none'" class="btn btn-back">Close</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -283,6 +378,15 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
         document.getElementById('submit_btn').innerText = "Add Sale Record";
         document.getElementById('submit_btn').name = "add_sale";
         document.getElementById('cancel_btn').style.display = "none";
+    }
+
+    function openVenmoModal(date, time, venmo, comments, formattedDate) {
+        document.getElementById('venmo_date').value = date;
+        document.getElementById('venmo_time').value = time;
+        document.getElementById('venmo_display_label').innerText = formattedDate + ' (' + time + ')';
+        document.getElementById('venmo_total_input').value = venmo;
+        document.getElementById('venmo_comments_input').value = comments;
+        document.getElementById('venmo_modal').style.display = 'block';
     }
 </script>
 </body>

@@ -149,9 +149,9 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                         <th class="right-align">Qty</th>
                         <th class="right-align">Sales</th>
                         <th class="right-align">Donations</th>
+                        <th class="right-align">Total</th>
                         <th class="right-align">Venmo</th>
                         <th class="right-align">Cash</th>
-                        <th class="right-align">Total</th>
                         <th style="text-align: right;">Action</th>
                     </tr>
                 </thead>
@@ -189,9 +189,9 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                             <td data-label="Subtotal Qty" class="right-align"><?php echo $subQty; ?></td>
                             <td data-label="Subtotal Sales" class="right-align">$<?php echo number_format($subSales, 2); ?></td>
                             <td data-label="Subtotal Donations" class="right-align">$<?php echo number_format($subDonations, 2); ?></td>
+                            <td data-label="Subtotal Total" class="right-align" style="color: var(--primary-color); font-weight: bold;">$<?php echo number_format($grandSub, 2); ?></td>
                             <td data-label="Subtotal Venmo" class="right-align">$<?php echo number_format($vTotal, 2); ?></td>
                             <td data-label="Subtotal Cash" class="right-align">$<?php echo number_format($cTotal, 2); ?></td>
-                            <td data-label="Subtotal Total" class="right-align" style="color: var(--primary-color); font-weight: bold;">$<?php echo number_format($grandSub, 2); ?></td>
                             <td data-label="Action">
                                 <button type="button" class="btn-edit" 
                                         style="font-size: 0.75rem; border:none; background:none; cursor:pointer;"
@@ -234,9 +234,9 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                             <td data-label="Qty" class="right-align"><?php echo $row['qty_sold']; ?></td>
                             <td data-label="Sales" class="right-align">$<?php echo number_format($row['total_sales'], 2); ?></td>
                             <td data-label="Donations" class="right-align">$<?php echo number_format($row['total_donations'], 2); ?></td>
-                            <td class="right-align text-muted">—</td>
-                            <td class="right-align text-muted">—</td>
                             <td data-label="Total" class="right-align">$<?php echo number_format($row['total_sales'] + $row['total_donations'], 2); ?></td>
+                            <td class="right-align text-muted">—</td>
+                            <td class="right-align text-muted">—</td>
                             <td data-label="Action" style="text-align: right; white-space: nowrap;">
                                 <button type="button" class="btn-edit" 
                                         style="border:none; background:none; cursor:pointer;"
@@ -277,9 +277,9 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                             <td data-label="Subtotal Qty" class="right-align"><?php echo $subQty; ?></td>
                             <td data-label="Subtotal Sales" class="right-align">$<?php echo number_format($subSales, 2); ?></td>
                             <td data-label="Subtotal Donations" class="right-align">$<?php echo number_format($subDonations, 2); ?></td>
+                            <td data-label="Subtotal Total" class="right-align" style="color: var(--primary-color); font-weight: bold;">$<?php echo number_format($grandSub, 2); ?></td>
                             <td data-label="Subtotal Venmo" class="right-align">$<?php echo number_format($vTotal, 2); ?></td>
                             <td data-label="Subtotal Cash" class="right-align">$<?php echo number_format($cTotal, 2); ?></td>
-                            <td data-label="Subtotal Total" class="right-align" style="color: var(--primary-color); font-weight: bold;">$<?php echo number_format($grandSub, 2); ?></td>
                             <td data-label="Action">
                                 <button type="button" class="btn-edit" 
                                         style="font-size: 0.75rem; border:none; background:none; cursor:pointer;"
@@ -295,9 +295,9 @@ $products_list = $pdo->query("SELECT product_name, MAX(unit_sale_price) as unit_
                     if (!empty($sales)): ?>
                     <tr style="background: #eee; font-weight: bold; border-top: 2px solid #333;">
                         <td colspan="5" data-label="Summary" style="text-align: right; padding: 15px;">GRAND TOTALS:</td>
+                        <td data-label="Grand Total" class="right-align" style="color: var(--primary-color);">$<?php echo number_format($finalGrandTotal, 2); ?></td>
                         <td data-label="Grand Venmo" class="right-align">$<?php echo number_format($finalGrandVenmo, 2); ?></td>
                         <td data-label="Grand Cash" class="right-align">$<?php echo number_format($finalGrandCash, 2); ?></td>
-                        <td data-label="Grand Total" class="right-align" style="color: var(--primary-color);">$<?php echo number_format($finalGrandTotal, 2); ?></td>
                         <td data-label="Action"></td>
                     </tr>
                     <?php endif; ?>

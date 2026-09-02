@@ -24,7 +24,10 @@ $cogsData = $pdo->query("
     ) p ON s.product_name = p.product_name
 ")->fetch();
 $totalCOGS = $cogsData['total_cogs'] ?? 0;
-$netProfit = $grandTotal - $totalCOGS;
+
+// Adjustment to Total Profit (e.g. cash variance, corrections)
+$adjustment = -462;
+$netProfit = $grandTotal - $totalCOGS + $adjustment;
 
 // 2. Product-wise Totals
 $productTotals = $pdo->query("SELECT product_name, SUM(total_sales) as total FROM {$tab_prefix}_shift_sales GROUP BY product_name ORDER BY total DESC")->fetchAll();
@@ -79,6 +82,10 @@ usort($scouts, function($a, $b) {
             <tr style="color: #d32f2f;">
                 <td>Less: Cost of Goods Sold (COGS)</td>
                 <td class="right-align">($<?php echo number_format($totalCOGS, 2); ?>)</td>
+            </tr>
+            <tr>
+                <td>Adjustment</td>
+                <td class="right-align">($<?php echo number_format(abs($adjustment), 2); ?>)</td>
             </tr>
             <tr style="font-weight:bold; border-top: 2px solid #eee;">
             <!-- <tr style="font-weight:bold; border-top: 1px solid #eee; background: #fffde7;"> -->
